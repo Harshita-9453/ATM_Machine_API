@@ -8,6 +8,6 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-    List<Transaction> findByAccountNumberOrderByTimestampDesc(String accountNumber);
+    List<Transaction> findByCardNumberOrderByTimestampDesc(String accountNumber);
 
 }

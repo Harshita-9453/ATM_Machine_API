@@ -22,88 +22,118 @@ public class AtmService {
         this.transactionRepo = transactionRepo;
     }
 
-    public User creditMoney(String accountNumber, Double amount) {
-        User user = getUserByAccountNumber(accountNumber);
+    public User creditMoney(String cardNumber, Double amount) {
+        User user = getUserByCardNumber(cardNumber);
         if (amount == null || amount <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
-        user.setBalance(user.getBalance() + amount);
-        transactionRepo.save(new Transaction(accountNumber, "CREDIT", amount));
+        user.setInitialDeposit(user.getInitialDeposit() + amount);
+        transactionRepo.save(new Transaction(cardNumber, "CREDIT", amount));
         return userRepo.save(user);
     }
+    public String withdrawMoney(String cardNumber, Double amount, String accountType) {
+        User user = getUserByCardNumber(cardNumber);
 
-    public String withdrawMoney(String accountNumber, Double amount) {
-        User user = getUserByAccountNumber(accountNumber);
-        double remainingBalance = user.getBalance() - amount;
+        if (!user.getAccountType().equalsIgnoreCase(accountType)) {
+            throw new IllegalArgumentException("Invalid account type for this user.");
+        }
+
+        double minBalance;
+        if ("Savings".equalsIgnoreCase(accountType)) {
+            minBalance = 500;
+        } else if ("Current".equalsIgnoreCase(accountType)) {
+            minBalance = 1000;
+        } else {
+            throw new IllegalArgumentException("Unsupported account type.");
+        }
 
         if (amount <= 0) {
             throw new IllegalArgumentException("Withdrawal amount must be greater than zero");
         }
 
-        if (remainingBalance < 500) {
-            throw new IllegalArgumentException("The amount you entered will exceed the minimum balance limit. A penalty will be charged or transaction blocked.");
+        double remainingBalance = user.getInitialDeposit() - amount;
+
+        if (remainingBalance < minBalance) {
+            throw new IllegalArgumentException("Insufficient balance: minimum balance requirement not met.");
         }
 
-        user.setBalance(remainingBalance);
+        user.setInitialDeposit(remainingBalance);
         userRepo.save(user);
-        // Log transaction
-        transactionRepo.save(new Transaction(accountNumber, "DEBIT", amount));
+        transactionRepo.save(new Transaction(cardNumber, "DEBIT", amount));
 
-        return "Money withdrawn successfully. Please collect your cash.";
+        return "Money withdrawn successfully.";
     }
 
-    public User changePin(String accountNumber, String newPin) {
-        User user = getUserByAccountNumber(accountNumber);
+    public User changePin(String cardNumber, String newPin) {
+        User user = getUserByCardNumber(cardNumber);
         user.setPin(newPin);
         return userRepo.save(user);
     }
 
-    public User transferFunds(String senderAccountNumber, String receiverAccountNumber, Double amount) {
-        User sender = getUserByAccountNumber(senderAccountNumber);
-        User receiver = getUserByAccountNumber(receiverAccountNumber);
+    public User transferFunds(String senderCardNumber, String receiverCardNumber, Double amount) {
+        User sender = getUserByCardNumber(senderCardNumber);
+        User receiver = getUserByCardNumber(receiverCardNumber);
 
         if (amount == null || amount <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
 
-        double newSenderBalance = sender.getBalance() - amount;
+        double newSenderBalance = sender.getInitialDeposit() - amount;
 
         if (newSenderBalance < 500) {
             throw new IllegalArgumentException("Transfer failed: Sender's account will fall below the minimum balance of ₹500.");
         }
 
-        sender.setBalance(newSenderBalance);
-        receiver.setBalance(receiver.getBalance() + amount);
+        sender.setInitialDeposit(newSenderBalance);
+        receiver.setInitialDeposit(receiver.getInitialDeposit() + amount);
 
         userRepo.save(receiver);
-        transactionRepo.save(new Transaction(senderAccountNumber, "TRANSFER_OUT", amount));
-        transactionRepo.save(new Transaction(receiverAccountNumber, "TRANSFER_IN", amount));
+        transactionRepo.save(new Transaction(senderCardNumber, "TRANSFER_OUT", amount));
+        transactionRepo.save(new Transaction(receiverCardNumber, "TRANSFER_IN", amount));
 
         return userRepo.save(sender);
     }
 
-    public Double checkBalance(String accountNumber) {
-        return getUserByAccountNumber(accountNumber).getBalance();
+    public Double checkBalance(String cardNumber) {
+        return getUserByCardNumber(cardNumber).getInitialDeposit();
     }
 
-    public User getUserByAccountNumber(String accountNumber) {
-        return userRepo.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new UserNotFoundException("User with account number " + accountNumber + " not found"));
+    public User getUserByCardNumber(String cardNumber) {
+        return userRepo.findByCardNumber(cardNumber)
+                .orElseThrow(() -> new UserNotFoundException("User with account number " + cardNumber + " not found"));
     }
-
 
     public User createUser(User user) {
-        if (user.getBalance() < 500) {
-            throw new IllegalArgumentException("Opening balance must be at least ₹500");
+        if (user.getAccountType() == null) {
+            throw new IllegalArgumentException("Account type is required.");
         }
+
+        String type = user.getAccountType().trim().toLowerCase();
+        double initialDeposit = user.getInitialDeposit(); // Assuming balance field is used for deposit
+
+        switch (type) {
+            case "savings":
+                if (initialDeposit < 500) {
+                    throw new IllegalArgumentException("Minimum initial deposit for a Savings account is ₹500.");
+                }
+                break;
+            case "current":
+                if (initialDeposit < 1000) {
+                    throw new IllegalArgumentException("Minimum initial deposit for a Current account is ₹1000.");
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid account type. Must be 'Savings' or 'Current'.");
+        }
+
         return userRepo.save(user);
     }
 
     public List<User> getAllUsers() {
         return userRepo.findAll();
     }
-    public List<Transaction> getAllTransactions(String accountNumber) {
-        return transactionRepo.findByAccountNumberOrderByTimestampDesc(accountNumber);
+    public List<Transaction> getAllTransactions(String cardNumber) {
+        return transactionRepo.findByCardNumberOrderByTimestampDesc(cardNumber);
     }
 
 

@@ -11,7 +11,7 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String accountNumber;
+    private String cardNumber;
 
     private String type; // e.g., "CREDIT", "DEBIT", "TRANSFER"
 
@@ -22,8 +22,8 @@ public class Transaction {
     // Constructors
     public Transaction() {}
 
-    public Transaction(String accountNumber, String type, double amount) {
-        this.accountNumber = accountNumber;
+    public Transaction(String cardNumber, String type, double amount) {
+        this.cardNumber = cardNumber;
         this.type = type;
         this.amount = amount;
         this.timestamp = LocalDateTime.now();
@@ -34,12 +34,12 @@ public class Transaction {
         return id;
     }
 
-    public String getAccountNumber() {
-        return accountNumber;
+    public String getCardNumber() {
+        return cardNumber;
     }
 
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
+    public void setCardNumber(String cardNumber) {
+        this.cardNumber = cardNumber;
     }
 
     public String getType() {

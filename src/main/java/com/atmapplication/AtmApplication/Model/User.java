@@ -2,6 +2,8 @@ package com.atmapplication.AtmApplication.Model;
 
 import jakarta.persistence.*;
 
+
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -9,12 +11,26 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "account_number", unique = true, nullable = false)
-    private String accountNumber;
+
+    @Column(name = "card_number", unique = true, nullable = false)
+    private String cardNumber;
 
     private String name;
+
     private String pin;
-    private Double balance;
+
+    @Column(unique = true)  // Makes email unique in the database
+    private String email;
+
+    @Column(name= "account_type")
+    private String accountType;
+
+    private String contact;
+
+
+    @Column(name = "date_of_birth")  // Good practice to use snake_case for column names
+    private String dob;  // Consider using LocalDate if you want to handle it as a date type
+    private Double initialDeposit;
 
     // 🔽 Getters and Setters
 
@@ -34,12 +50,12 @@ public class User {
         this.name = name;
     }
 
-    public String getAccountNumber() {
-        return accountNumber;
+    public String getCardNumber() {
+        return cardNumber;
     }
 
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
+    public void setCardNumber(String cardNumber) {
+        this.cardNumber = cardNumber;
     }
 
 
@@ -51,11 +67,43 @@ public class User {
         this.pin = pin;
     }
 
-    public Double getBalance() {
-        return balance;
+    public String getEmail() {
+        return email;
     }
 
-    public void setBalance(Double balance) {
-        this.balance = balance;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getContact() {
+        return contact;
+    }
+
+    public void setContact(String contact) {
+        this.contact = contact;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = dob;
+    }
+
+    public Double getInitialDeposit() {
+        return initialDeposit;
+    }
+
+    public void setInitialDeposit(Double initialDeposit) {
+        this.initialDeposit = initialDeposit;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
     }
 }
