@@ -1,6 +1,6 @@
 package com.atmapplication.AtmApplication.Controller;
 
-
+import jakarta.validation.Valid;
 import com.atmapplication.AtmApplication.Model.Transaction;
 import com.atmapplication.AtmApplication.Model.User;
 import com.atmapplication.AtmApplication.Service.AtmService;
@@ -22,7 +22,7 @@ public class AtmController {
 
     // Create a new user
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         User createdUser = atmService.createUser(user);
         return ResponseEntity.ok(createdUser);
     }
